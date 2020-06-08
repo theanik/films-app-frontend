@@ -20,15 +20,19 @@ export default new Router({
       name: 'Films',
       component: Films
     },
+    
     {
-      path: '/film/:slug',
-      name: 'FilmDetails',
-      component: FilmDetails
-    },
-    {
-      path: '/film/create',
+      path: '/films/create',
       name: 'FilmCreate',
       component: FilmCreate
+    },
+
+
+
+    {
+      path: '/films/:slug',
+      name: 'FilmDetails',
+      component: FilmDetails
     },
   ]
 })
