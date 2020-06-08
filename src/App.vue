@@ -1,12 +1,22 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
-    <router-view/>
+  <navbar></navbar>
+  <div class="row">
+    <div class="container">
+      <div class="col-md-12 mt-3">
+          <router-view />
+      </div>
+    </div>
+  </div>
   </div>
 </template>
 
 <script>
+import Navbar from './components/partials/Navbar'
 export default {
+  components: {
+    Navbar
+  },
   name: 'App'
 }
 </script>
@@ -18,6 +28,5 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 </style>
