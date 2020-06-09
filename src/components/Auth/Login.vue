@@ -1,9 +1,10 @@
 <template>
   <div>
-       <div class="col-md-8">
+    <div class="row justify-content-center">
+  <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                Sign Up
+                Log In
             </div>
             <div class="card-body">
                 <b-form @submit="onSubmit" @reset="onReset">
@@ -44,6 +45,8 @@
             </div>
              
       </div>
+    </div>
+     
   </div>
 </template>
 
@@ -62,12 +65,16 @@ import { AUTH_REQUEST } from "../../store/actions/auth";
     methods: {
       onSubmit(evt) {
         evt.preventDefault()
+        this.$Progress.start()
         let {email, password} = this
         this.$store.dispatch(AUTH_REQUEST, { email, password }).then(() => {
-            this.$router.push('/')
+          this.$Progress.finish()
+          this.$router.push('/')
+            
         }).catch(e => {
             this.errorAlert = true
             console.log(e)
+            this.$Progress.fail()
         })
         
       },

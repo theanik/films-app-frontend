@@ -1,6 +1,7 @@
 <template>
   <div>
-      <div class="col-md-8">
+  <div class="row justify-content-center">
+  <div class="col-md-6">
         <div class="card">
             <div class="card-header">
                 Sign Up
@@ -58,13 +59,14 @@
                 </div> 
             </div>
              
-      </div>
-     
-    
   </div>
+  </div>
+  </div>
+  
 </template>
 
 <script>
+import axios from 'axios'
   export default {
     name : "Register",
     data() {
@@ -78,16 +80,19 @@
     },
     methods: {
       onSubmit(evt) {
+        this.$Progress.start()
         this.errorAlert = false
         this.suceessAlert = false
         evt.preventDefault()
         let info = {name:this.name,email:this.email,password:this.password,}
-        this.axios.post(`${this.$baseApiUrl}/signup`,info)
+        axios.post(`${this.$baseApiUrl}/signup`,info)
         .then(res => {
             this.suceessAlert = true
+            this.$Progress.finish()
             // this.$router.replace(this.$route.query.redirect || '/login')
             this.onReset()
         }).catch(e => {
+          this.$Progress.fail()
             this.errorAlert = true
             console.log(e)
         })

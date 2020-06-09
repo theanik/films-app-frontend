@@ -6,6 +6,10 @@
           </div>
           
           <div class="card-body">
+              <div class="row">
+                  <span v-show="successAlert" class="alert alert-success col-md-8">{{ msg }}</span>
+              <span v-show="errors" v-for="(error,index) in errors" :key="index" class="alert alert-danger col-md-8">{{ error[0] }}</span>
+              </div>
             <b-form v-if="show" @submit="onSubmit">
                 <b-form-group
                     id="name"
@@ -16,7 +20,6 @@
                     id="name"
                     v-model="name"
                     type="text"
-                    required
                     placeholder="Enter Name"
                     ></b-form-input>
                 </b-form-group>
@@ -29,7 +32,6 @@
                     <b-form-textarea
                     id="description"
                     v-model="description"
-                    required
                     placeholder="Description"
                 ></b-form-textarea>
 
@@ -44,7 +46,6 @@
                     id="release_date"
                     v-model="release_date"
                     type="date"
-                    required
                     placeholder="Enter Rlease date"
                     ></b-form-input>
                 </b-form-group>
@@ -58,7 +59,6 @@
                     id="ticket_price"
                     v-model="ticket_price"
                     type="number"
-                    required
                     placeholder="Enter Ticket Price"
                     ></b-form-input>
                 </b-form-group>
@@ -83,7 +83,6 @@
                     <b-form-textarea
                     id="genre"
                     v-model="genre"
-                    required
                     placeholder="Type"
                 ></b-form-textarea>
 
@@ -117,7 +116,11 @@
 </template>
 
 <script>
+import Loading from 'vue-loading-overlay';
   export default {
+      components:{
+          Loading
+      },
     data() {
       return {
           msg : '',
@@ -126,10 +129,12 @@
         description : '',
         release_date : '',
         ticket_price : '',
-        country : '',
+        country : null,
         genre : '',
         photo : '',
         show: true,
+        successAlert : false,
+        errors : {},
 
 
         options: [
@@ -144,6 +149,9 @@
 
       }
     },
+    mounted(){
+        this.$Progress.finish()
+    },
     methods: {
     fileName(files) {
         if (files) {
@@ -154,7 +162,7 @@
 
       onSubmit(evt) {
         evt.preventDefault()
-        console.log('submit')
+        this.$Progress.start()
         const config = {
             headers: { 'content-type': 'multipart/form-data' }
         }
@@ -170,14 +178,19 @@
 
         this.axios.post(this.$baseApiUrl+"/films",formData, config)
         .then(res=>{
-            console.log(res)
             if(res.data.success == true){
-                alert(res.data.message)
+                this.$Progress.finish()
+                this.successAlert = true
+                this.msg = res.data.message
+                this.timeOutHandeler()
                 this.onReset()
             }
         })
         .catch(err=>{
-            console.log(err)
+            this.$Progress.fail()
+            this.errors = err.response.data.errors
+            this.timeOutHandeler()
+            this.$Progress.fail()
         })
       },
       onReset() {
@@ -189,7 +202,16 @@
             this.genre = ''
             this.photo = ''
             this.photoFile = ''
-      }
+      },
+
+      timeOutHandeler(){
+          setTimeout(() => {
+            this.errors = {},
+            this.successAlert = false
+            this.msg = ''
+          }, 6000);
+        }
+
     }
   }
 </script>

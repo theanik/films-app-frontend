@@ -5,6 +5,7 @@
     <div class="container">
       <div class="col-md-12 mt-3">
           <router-view />
+          <vue-progress-bar></vue-progress-bar>
       </div>
     </div>
   </div>

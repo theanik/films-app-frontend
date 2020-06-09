@@ -6,6 +6,7 @@ import {
   } from "../actions/auth";
   import { USER_REQUEST } from "../actions/user";
   import axios from 'axios'
+  import {BASE_URL} from '../../utils'
   const state = {
     token: localStorage.getItem("user-token") || "",
     status: "",
@@ -21,7 +22,7 @@ import {
     [AUTH_REQUEST]: ({ commit, dispatch }, user) => {
       return new Promise((resolve, reject) => {
         commit(AUTH_REQUEST);
-        axios({ url: `http://127.0.0.1:8000/api/v1/login`, data: user, method: "POST" })
+        axios({ url: `${BASE_URL}/login`, data: user, method: "POST" })
           .then(resp => {
             localStorage.setItem("user-token", resp.data.access_token);
             // Here set the header of your ajax library to the token value.

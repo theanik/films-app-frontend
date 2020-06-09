@@ -2,6 +2,7 @@ import { USER_REQUEST, USER_ERROR, USER_SUCCESS } from "../actions/user";
 import Vue from "vue";
 import { AUTH_LOGOUT } from "../actions/auth";
 import axois from 'axios'
+import {BASE_URL} from '../../utils'
 const state = { status: "", profile: {} };
 
 const getters = {
@@ -12,7 +13,7 @@ const getters = {
 const actions = {
   [USER_REQUEST]: ({ commit, dispatch }) => {
     commit(USER_REQUEST);
-    axois.get(`http://127.0.0.1:8000/api/v1/user`)
+    axois.get(`${BASE_URL}/user`)
       .then(resp => {
         commit(USER_SUCCESS, resp);
       })

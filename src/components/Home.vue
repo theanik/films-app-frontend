@@ -1,6 +1,11 @@
 <template>
   <div class="home">
-      <h1>{{ msg }} {{ profile.name }}</h1>
+      <b-card class="text-center">
+        <h1>{{ msg }}</h1>
+        <div class="bg-secondary text-light">
+          
+        </div>
+      </b-card>
   </div>
 </template>
 
@@ -8,7 +13,11 @@
 import { mapState } from "vuex"
 import { USER_REQUEST } from "../store/actions/user";
 import axios from 'axios'
+import Navbar from './partials/Paginate'
 export default {
+  components:{
+    Navbar
+  },
   
   name: 'Home',
   data () {
@@ -18,7 +27,7 @@ export default {
         name : '',
         email : ''
       },
-      msg: 'Welcome to Film App'
+      msg: 'Explore what’s streaming'
     }
   },
   mounted(){

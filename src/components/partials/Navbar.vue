@@ -16,16 +16,19 @@
 
     <!-- Right aligned nav items -->
       <b-navbar-nav class="ml-auto">
-        <b-nav-form>
-          <b-form-input size="sm" class="mr-sm-2" placeholder="Search"></b-form-input>
-        </b-nav-form>
-
+        <div class="mb-4" v-show="isAuthenticated">
+          <b-avatar></b-avatar>
+           <b-navbar-brand href="#">{{profile.name}}</b-navbar-brand>
+        </div>
+        
         <div v-if="!isAuthenticated">
+          
             <b-button @click="login" variant="success">Login</b-button>
         </div>
         <div v-else>
-          <div class="p-3 mb-2 bg-light text-dark">{{ profile.name }}</div>
-          <b-button @click="logout" variant="success">Logout</b-button>
+          <b-button variant="danger" class="mb-2">
+            <b-icon @click="logout" icon="power" aria-hidden="true"></b-icon> Logout
+          </b-button>
         </div>
 
       </b-navbar-nav>
@@ -62,8 +65,10 @@ export default {
       },
       logout()
       {
+        this.$Progress.start()
          this.$store.dispatch(AUTH_LOGOUT)
         .then(() => {
+          this.$Progress.finish()
           this.$router.push('/login')
         })
       }

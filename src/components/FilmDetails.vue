@@ -23,13 +23,13 @@
                   <strong class="text-info">
                       Release date : 
                   </strong>
-                  {{ film.release_date }}
+                  {{ film.release_date | mydate }}
               </b-list-group-item>
               <b-list-group-item>
                   <strong class="text-info">
                       Ticket price : 
                   </strong>
-                  {{ film.ticket_price }}
+                  {{ film.ticket_price }} $
               </b-list-group-item>
               <b-list-group-item>
                   <strong class="text-info">
@@ -37,6 +37,16 @@
                   </strong>
                   {{ film.country }}
               </b-list-group-item>
+
+              <b-list-group-item>
+                  <strong class="text-info">
+                      Rating : 
+                  </strong>
+                  {{ getRating ? getRating : 0.00 }}<b-icon icon="star-fill" animation="fade" aria-hidden="true"></b-icon>
+                  {{ ratings.length ? ratings.length : 0.00 }}<b-icon icon="person-fill" aria-hidden="true"></b-icon>
+
+              </b-list-group-item>
+
           </b-list-group>
 
           </b-card-body>
@@ -45,31 +55,39 @@
       </b-row>
     </b-card>    
   </div>
+  
+  <div class="row mt-3">
+    <span v-show="errorAlert" class="alert alert-warning col-md-8">For commemt or rating you have to <router-link :to="'/login'" class="alert-link">Log in...Click Here!!</router-link></span>
+    <span v-show="errorAlert2" class="alert alert-warning col-md-8">{{ msg }}</span>
+    <span v-show="successAlert" class="alert alert-success col-md-8">{{ msg }}</span>
+  </div>
 
-  <div class="row mt-5">
+
+  <div class="row mt-3">
+
     <div class="col-md-8">
       <div class="card">
         <div class="card-header">
-          Comment panel
+          Comment panel <b-badge variant="info">{{ comments.length }}</b-badge>
         </div>
         <div class="card-body">
             <div class="panel-body">
-                    <textarea class="form-control" placeholder="write a comment..." rows="3"></textarea>
+                  <b-form @submit.prevent="commentOnSubmit">
+                    <b-textarea v-model="comment" class="form-control" placeholder="write a comment..." rows="3"></b-textarea>
                     <br>
-                    <button type="button" class="btn btn-info pull-right">Post</button>
+                    <b-button type="submit" class="btn btn-info pull-right">Post</b-button>
+                  </b-form>
                     <div class="clearfix"></div>
                     <hr>
-                    <ul class="media-list">
+                    <ul class="media-list" v-for="(comment, index) in comments" :key="index">
                         <li class="media">
                             <div class="media-body">
-                                
-                                <strong class="text-success">@MartinoMont</strong>
+                                <strong class="text-success">@{{ comment.user_id }}</strong>
                                 <span class="text-muted pull-right">
-                                    <small class="text-muted">30 min ago</small>
+                                    <small class="text-muted">{{comment.created_at|mydate}}</small>
                                 </span>
                                 <p>
-                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                                    Lorem ipsum dolor sit amet, <a href="#">#consecteturadipiscing </a>.
+                                  {{ comment.comment }} <a href="#"> </a>.
                                 </p>
                             </div>
                         </li>
@@ -79,7 +97,7 @@
       </div>
     </div>
     <div class="col-md-4">
-        <star-rating v-model="rating"></star-rating>
+        <star-rating @rating-selected ="setRating" v-model="rating"></star-rating>
     </div>
   </div>
 
@@ -92,6 +110,8 @@
 <script>
 import StarRating from 'vue-star-rating'
 import paginate  from './partials/Paginate'
+import axios from "axios"
+import {mapGetters} from "vuex"
 export default {
     components:{
         paginate,
@@ -100,26 +120,143 @@ export default {
   name: 'Films',
   data () {
     return {
+        profile :{
+          id : '',
+          name : '',
+          email : ''
+        },
         rating : 0,
+        comment : '',
         slug : this.$route.params.slug,
         film : {},
+        comments : {},
+        ratings : {},
+        errorAlert : false,
+        successAlert : false,
+        errorAlert2 : false,
+        msg : '',
     }
   },
-  mounted() {
-      this.getDetails()
-      console.log(this.getImgUrl('mary-and-max2.png'))
+  async mounted() {
+    try{
+      let res = await this.axios.get(`${this.$baseApiUrl}/user`)
+      this.profile = res.data
+    }catch(err){
+      console.log(err)
+    }
+    this.getDetails()
+    this.$Progress.finish()
+  },
+  computed: {
+    ...mapGetters(["isAuthenticated"]),
+    getRating(){
+      let result =  this.ratings.reduce((acc,item) => acc + item.rate,0) / this.ratings.length
+      return result
+    }
+
   },
   methods:{
        getDetails() {
-         this.axios.get(this.$baseApiUrl+"/film/"+this.slug)
+         this.$Progress.start()
+         this.axios.get(this.$baseApiUrl+"/films/"+this.slug)
          .then((res) => {
             this.film = res.data.film
+            this.comments = res.data.film.comments
+            this.ratings = res.data.film.rating
+            console.log(this.ratings)
+            if(this.isAuthenticated){
+              this.getCurrentUserRating(this.profile.id, this.film.id)
+            }
+            this.timeOutHandeler()
+            this.$Progress.finish()
+         })
+         .catch(err=>{
+           this.$Progress.fail()
          })
         },
 
         getImgUrl(img) {
             return this.$baseUrl+'/film_photos/'+img
         },
+
+        commentOnSubmit()
+        {
+          this.$Progress.start()
+          console.log(this.comment)
+          if(!this.isAuthenticated){
+            this.$Progress.fail()
+            this.errorAlert = true
+            this.timeOutHandeler()
+          }else{
+            let data = {
+              comment : this.comment,
+              user_id : this.profile.id,
+              film_id : this.film.id
+            }
+            this.axios.post(`${this.$baseApiUrl}/comment`,data)
+            .then(res => {
+              this.successAlert = true
+              this.msg = res.data.message
+              this.getDetails()
+              this.comment = ''
+              this.$Progress.finish()
+            }).catch(err => {
+              this.errorAlert2 = true
+              this.msg = "You must enter a comment"
+              this.getDetails()
+              this.$Progress.fail()
+            })
+          }
+        },
+
+        setRating(rating){
+          this.rating = rating
+          if(!this.isAuthenticated){
+            this.rating = 0
+            this.errorAlert = true
+            this.timeOutHandeler()
+          }else{
+            
+              let data = {
+                rate : this.rating,
+                user_id : this.profile.id,
+                film_id : this.film.id
+              }
+              this.axios.post(`${this.$baseApiUrl}/rating`,data)
+              .then(res => {
+                this.successAlert = true
+                this.msg = res.data.message
+                this.getDetails()
+              })
+              .catch(err => {
+                console.log(err)
+              })
+
+          }
+        },
+
+        getCurrentUserRating(user_id,film_id){
+          this.axios.get(`${this.$baseApiUrl}/rating/current/${user_id}/${film_id}`)
+          .then(res => {
+            if(res.data.success = true){
+              this.rating = res.data.rating
+            }
+            console.log(res)
+          })
+        },
+
+      
+
+        timeOutHandeler(){
+          setTimeout(() => {
+            this.successAlert = false,
+            this.errorAlert = false,
+            this.errorAlert2 = false,
+            this.msg = ''
+          }, 8000);
+        }
+
+
   }
 
   
