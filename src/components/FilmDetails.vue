@@ -1,6 +1,9 @@
 <template>
 <div>
-  <div class="row">
+<div class="row justify-content-center">
+      <b-spinner v-show="loading1" style="width: 3rem; height: 3rem;" variant="primary" label="Spinning"></b-spinner>
+  </div>
+  <div class="row" v-show="!loading1">
     <b-card no-body class="overflow-hidden col-md-12" style="">
       <b-row no-gutters>
         <b-col md="5">
@@ -63,8 +66,7 @@
   </div>
 
 
-  <div class="row mt-3">
-
+  <div class="row mt-3" v-show="!loading1">
     <div class="col-md-8">
       <div class="card">
         <div class="card-header">
@@ -82,7 +84,7 @@
                     <ul class="media-list" v-for="(comment, index) in comments" :key="index">
                         <li class="media">
                             <div class="media-body">
-                                <strong class="text-success">@{{ comment.user_id }}</strong>
+                                <strong class="text-success">@{{ comment.user.name }}</strong>
                                 <span class="text-muted pull-right">
                                     <small class="text-muted">{{comment.created_at|mydate}}</small>
                                 </span>
@@ -101,25 +103,22 @@
     </div>
   </div>
 
-
-
 </div>
 
 </template>
 
 <script>
 import StarRating from 'vue-star-rating'
-import paginate  from './partials/Paginate'
 import axios from "axios"
 import {mapGetters} from "vuex"
 export default {
     components:{
-        paginate,
         StarRating
     },
   name: 'Films',
   data () {
     return {
+        loading1 : false,
         profile :{
           id : '',
           name : '',
@@ -130,45 +129,48 @@ export default {
         slug : this.$route.params.slug,
         film : {},
         comments : {},
-        ratings : {},
+        ratings : [],
         errorAlert : false,
         successAlert : false,
         errorAlert2 : false,
         msg : '',
+        
     }
   },
-  async mounted() {
-    try{
-      let res = await this.axios.get(`${this.$baseApiUrl}/user`)
-      this.profile = res.data
-    }catch(err){
-      console.log(err)
+  mounted() {
+    if(this.isAuthenticated){
+       this.axios.get(`${this.$baseApiUrl}/user`)
+      .then(res => {
+        this.profile = res.data
+      })
     }
+   
     this.getDetails()
     this.$Progress.finish()
   },
   computed: {
     ...mapGetters(["isAuthenticated"]),
     getRating(){
-      let result =  this.ratings.reduce((acc,item) => acc + item.rate,0) / this.ratings.length
+      let result =  this.ratings.reduce((acc,item) => acc + item.rate, 0) / this.ratings.length
       return result
     }
 
   },
   methods:{
        getDetails() {
+         this.loading1 = true
          this.$Progress.start()
          this.axios.get(this.$baseApiUrl+"/films/"+this.slug)
          .then((res) => {
             this.film = res.data.film
             this.comments = res.data.film.comments
             this.ratings = res.data.film.rating
-            console.log(this.ratings)
             if(this.isAuthenticated){
-              this.getCurrentUserRating(this.profile.id, this.film.id)
+              this.getCurrentUserRating(this.film.id)
             }
             this.timeOutHandeler()
             this.$Progress.finish()
+            this.loading1 = false
          })
          .catch(err=>{
            this.$Progress.fail()
@@ -182,7 +184,6 @@ export default {
         commentOnSubmit()
         {
           this.$Progress.start()
-          console.log(this.comment)
           if(!this.isAuthenticated){
             this.$Progress.fail()
             this.errorAlert = true
@@ -229,19 +230,18 @@ export default {
                 this.getDetails()
               })
               .catch(err => {
-                console.log(err)
+                // console.log(err)
               })
 
           }
         },
 
-        getCurrentUserRating(user_id,film_id){
-          this.axios.get(`${this.$baseApiUrl}/rating/current/${user_id}/${film_id}`)
+        getCurrentUserRating(film_id){
+          this.axios.get(`${this.$baseApiUrl}/rating/current/${film_id}`)
           .then(res => {
             if(res.data.success = true){
               this.rating = res.data.rating
             }
-            console.log(res)
           })
         },
 

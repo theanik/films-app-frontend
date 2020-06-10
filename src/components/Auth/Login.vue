@@ -1,7 +1,10 @@
 <template>
   <div>
     <div class="row justify-content-center">
-  <div class="col-md-6">
+      <b-spinner v-show="loading" style="width: 3rem; height: 3rem;" variant="primary" label="Spinning"></b-spinner>
+    </div>
+    <div class="row justify-content-center">
+    <div class="col-md-6">
         <div class="card">
             <div class="card-header">
                 Log In
@@ -32,12 +35,10 @@
                     ></b-form-input>
                 </b-form-group>
 
-                <b-alert v-show="errorAlert" show variant="danger">Something went wrong!!!</b-alert>
-
-                
-
-                <b-button type="submit" variant="primary">Submit</b-button>
-                <b-button type="reset" variant="danger">Reset</b-button>
+                  <b-alert v-show="errorAlert" show variant="danger">Something went wrong!!!</b-alert>
+                  <b-alert v-show="errors" v-for="(error,index) in errors" :key="index" show variant="danger">{{ error[0] }}</b-alert>
+                <b-button type="submit" :disabled="loading" variant="primary">Submit</b-button>
+                <b-button type="reset" :disabled="loading" variant="danger">Reset</b-button>
                 <router-link :to="'signup'">New User?? To Register click here!!</router-link>
                         
                 </b-form>
@@ -59,22 +60,26 @@ import { AUTH_REQUEST } from "../../store/actions/auth";
           email: '',
           password: '',
           errorAlert: false,
-          errors : [],
+          errors : {},
+          loading : false
       }
     },
     methods: {
       onSubmit(evt) {
+        this.loading = true
         evt.preventDefault()
         this.$Progress.start()
         let {email, password} = this
         this.$store.dispatch(AUTH_REQUEST, { email, password }).then(() => {
           this.$Progress.finish()
-          this.$router.push('/')
+          this.$router.push({name : 'Home'})
+          this.loading = false
             
         }).catch(e => {
             this.errorAlert = true
-            console.log(e)
+            this.errors = e.response.data.errors
             this.$Progress.fail()
+            this.loading = true
         })
         
       },

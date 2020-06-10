@@ -8,7 +8,7 @@
           <div class="card-body">
               <div class="row">
                   <span v-show="successAlert" class="alert alert-success col-md-8">{{ msg }}</span>
-              <span v-show="errors" v-for="(error,index) in errors" :key="index" class="alert alert-danger col-md-8">{{ error[0] }}</span>
+                  <span v-show="errors" v-for="(error,index) in errors" :key="index" class="alert alert-danger col-md-8">{{ error[0] }}</span>
               </div>
             <b-form v-if="show" @submit="onSubmit">
                 <b-form-group
@@ -63,16 +63,8 @@
                     ></b-form-input>
                 </b-form-group>
 
-
-
-
                 <b-form-group id="country" label="Country:" label-for="input-2">
-                    <b-form-select
-                    v-model="country"
-                    :options="options"
-                    class="mb-3"
-                    ></b-form-select>
-
+                    <b-form-select v-model="country" :options="options"></b-form-select>
                 </b-form-group>
 
                 <b-form-group
@@ -80,16 +72,13 @@
                     label="Film Type:"
                     label-for="genre"
                 >
-                    <b-form-textarea
+                    <b-form-input
                     id="genre"
                     v-model="genre"
                     placeholder="Type"
-                ></b-form-textarea>
-
+                ></b-form-input>
                 </b-form-group>
 
-
-                
                 <b-form-group
                     id="photo"
                     label="Photo:"
@@ -110,21 +99,18 @@
 
           </div>
       </div>
-
       
   </div>
 </template>
 
 <script>
-import Loading from 'vue-loading-overlay';
   export default {
       components:{
-          Loading
       },
     data() {
       return {
-          msg : '',
-        photoFile : '',
+        msg : '',
+        photoFile : null,
         name : '',
         description : '',
         release_date : '',
@@ -155,7 +141,6 @@ import Loading from 'vue-loading-overlay';
     methods: {
     fileName(files) {
         if (files) {
-          console.log(files.target.files[0])
           this.photo = files.target.files[0]
         }
       },
@@ -178,12 +163,15 @@ import Loading from 'vue-loading-overlay';
 
         this.axios.post(this.$baseApiUrl+"/films",formData, config)
         .then(res=>{
+            this.$router.push({ name: 'Films' })
             if(res.data.success == true){
                 this.$Progress.finish()
-                this.successAlert = true
-                this.msg = res.data.message
-                this.timeOutHandeler()
+                // this.successAlert = true
+                // this.msg = res.data.message
+                // this.timeOutHandeler()
                 this.onReset()
+                
+                
             }
         })
         .catch(err=>{

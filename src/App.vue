@@ -14,11 +14,17 @@
 
 <script>
 import Navbar from './components/partials/Navbar'
+
 export default {
   components: {
     Navbar
   },
   name: 'App',
+  data(){
+    return{
+
+    }
+  },
   created: function () {
   this.axios.interceptors.response.use(undefined, function (err) {
     return new Promise(function (resolve, reject) {

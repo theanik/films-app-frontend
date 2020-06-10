@@ -6,12 +6,10 @@
 
     <b-collapse id="nav-collapse" is-nav>
       <b-navbar-nav>
-        <b-nav-item :to="{ path: '/' }">Home</b-nav-item>
-        <b-nav-item :to="{ path: '/films' }">Fims</b-nav-item>
-        <b-nav-item :to="{ path: '/films/create' }">Create New Films</b-nav-item>
-        
+        <b-nav-item :to="{ path: '/' }"><b-icon icon="house-fill" aria-hidden="true"></b-icon> Home</b-nav-item>
+        <b-nav-item :to="{ path: '/films' }"><b-icon icon="film" aria-hidden="true"></b-icon> Fims</b-nav-item>
+        <b-nav-item :to="{ path: '/films/create' }"><b-icon icon="plus-circle-fill" aria-hidden="true"></b-icon> Add New Films</b-nav-item>
       </b-navbar-nav>
-
     </b-collapse>
 
     <!-- Right aligned nav items -->
@@ -22,12 +20,13 @@
         </div>
         
         <div v-if="!isAuthenticated">
-          
-            <b-button @click="login" variant="success">Login</b-button>
+            <b-button @click="login">
+              <b-icon icon="person-plus-fill" aria-hidden="true"></b-icon> Login
+            </b-button>
         </div>
         <div v-else>
-          <b-button variant="danger" class="mb-2">
-            <b-icon @click="logout" icon="power" aria-hidden="true"></b-icon> Logout
+          <b-button @click="logout" class="mb-2">
+            <b-icon icon="power" aria-hidden="true"></b-icon> Logout
           </b-button>
         </div>
 
@@ -54,10 +53,13 @@ export default {
   },
   mounted()
   {
-    this.axios.get(`${this.$baseApiUrl}/user`)
+    if(this.isAuthenticated){
+      this.axios.get(`${this.$baseApiUrl}/user`)
        .then(res=>{
          this.profile = res.data
        })
+    }
+    
   },
   methods: {
     login(){
@@ -65,11 +67,11 @@ export default {
       },
       logout()
       {
-        this.$Progress.start()
+         this.$Progress.start()
          this.$store.dispatch(AUTH_LOGOUT)
         .then(() => {
           this.$Progress.finish()
-          this.$router.push('/login')
+          this.$router.push({ name: 'Login'})
         })
       }
   }
