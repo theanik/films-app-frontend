@@ -145,7 +145,7 @@ export default {
       })
     }
    
-    this.getDetails()
+    this.getDetails(true)
     this.$Progress.finish()
   },
   computed: {
@@ -157,8 +157,8 @@ export default {
 
   },
   methods:{
-       getDetails() {
-         this.loading1 = true
+       getDetails(loading = false) {
+         this.loading1 = loading
          this.$Progress.start()
          this.axios.get(this.$baseApiUrl+"/films/"+this.slug)
          .then((res) => {
@@ -198,13 +198,13 @@ export default {
             .then(res => {
               this.successAlert = true
               this.msg = res.data.message
-              this.getDetails()
+              this.getDetails(false)
               this.comment = ''
               this.$Progress.finish()
             }).catch(err => {
               this.errorAlert2 = true
               this.msg = "You must enter a comment"
-              this.getDetails()
+              this.getDetails(false)
               this.$Progress.fail()
             })
           }
@@ -227,7 +227,7 @@ export default {
               .then(res => {
                 this.successAlert = true
                 this.msg = res.data.message
-                this.getDetails()
+                this.getDetails(false)
               })
               .catch(err => {
                 // console.log(err)
